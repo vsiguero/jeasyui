@@ -1,0 +1,13 @@
+{
+  "name": "jquery-easyui",
+  "version": "1.3.4",
+  "main": "jquery.easyui.min.js",
+  "dependencies": {
+    "jquery": "~1.9.1"
+  },
+
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vsiguero/jeasyui"
+  }
+}
