@@ -1,5 +1,5 @@
 ﻿/**
- * jQuery EasyUI 1.3.4
+ * jQuery EasyUI 1.3.5
  * 
  * Copyright (c) 2009-2013 www.jeasyui.com. All rights reserved.
  *
@@ -29,18 +29,7 @@ var _7=$.data(_4,"panel").panel;
 var _8=_7.children("div.panel-header");
 var _9=_7.children("div.panel-body");
 if(_5){
-if(_5.width){
-_6.width=_5.width;
-}
-if(_5.height){
-_6.height=_5.height;
-}
-if(_5.left!=null){
-_6.left=_5.left;
-}
-if(_5.top!=null){
-_6.top=_5.top;
-}
+$.extend(_6,{width:_5.width,height:_5.height,left:_5.left,top:_5.top});
 }
 _6.fit?$.extend(_6,_7._fit()):_7._fit(false);
 _7.css({left:_6.left,top:_6.top});
@@ -58,7 +47,7 @@ _9.height("auto");
 }
 _7.css("height","");
 _6.onResize.apply(_4,[_6.width,_6.height]);
-_7.find(">div.panel-body>div").triggerHandler("_resize");
+$(_4).find(">div,>form>div").triggerHandler("_resize");
 };
 function _a(_b,_c){
 var _d=$.data(_b,"panel").options;
@@ -105,17 +94,17 @@ _18.bind("click",function(e){
 e.stopPropagation();
 });
 if(_15.tools){
-if(typeof _15.tools=="string"){
-$(_15.tools).children().each(function(){
-$(this).addClass($(this).attr("iconCls")).addClass("panel-tool-a").appendTo(_18);
-});
-}else{
+if($.isArray(_15.tools)){
 for(var i=0;i<_15.tools.length;i++){
 var t=$("<a href=\"javascript:void(0)\"></a>").addClass(_15.tools[i].iconCls).appendTo(_18);
 if(_15.tools[i].handler){
 t.bind("click",eval(_15.tools[i].handler));
 }
 }
+}else{
+$(_15.tools).children().each(function(){
+$(this).addClass($(this).attr("iconCls")).addClass("panel-tool-a").appendTo(_18);
+});
 }
 }
 if(_15.collapsible){
@@ -201,7 +190,9 @@ $(this).menubutton("destroy");
 t.find(".s-btn").each(function(){
 $(this).splitbutton("destroy");
 });
-t.find(".tooltip-f").tooltip("destroy");
+t.find(".tooltip-f").each(function(){
+$(this).tooltip("destroy");
+});
 };
 function _23(_24){
 $(_24).find("div.panel:visible,div.accordion:visible,div.tabs-container:visible,div.layout:visible").each(function(){

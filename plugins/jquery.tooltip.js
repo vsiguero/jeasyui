@@ -1,5 +1,5 @@
 ﻿/**
- * jQuery EasyUI 1.3.4
+ * jQuery EasyUI 1.3.5
  * 
  * Copyright (c) 2009-2013 www.jeasyui.com. All rights reserved.
  *
@@ -71,6 +71,10 @@ case "bottom":
 _e-=(_d._outerWidth()-t._outerWidth())/2;
 _f+=t._outerHeight()+12+(_c.trackMouse?12:0);
 break;
+}
+if(!$(_a).is(":visible")){
+_e=-100000;
+_f=-100000;
 }
 _d.css({left:_e,top:_f,zIndex:(_c.zIndex!=undefined?_c.zIndex:($.fn.window?$.fn.window.defaults.zIndex++:""))});
 _c.onPosition.call(_a,_e,_f);

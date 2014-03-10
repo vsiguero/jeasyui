@@ -1,5 +1,5 @@
 ﻿/**
- * jQuery EasyUI 1.3.4
+ * jQuery EasyUI 1.3.5
  * 
  * Copyright (c) 2009-2013 www.jeasyui.com. All rights reserved.
  *
@@ -12,10 +12,12 @@
 (function($){
 function _1(_2){
 var _3=$("<div class=\"slider\">"+"<div class=\"slider-inner\">"+"<a href=\"javascript:void(0)\" class=\"slider-handle\"></a>"+"<span class=\"slider-tip\"></span>"+"</div>"+"<div class=\"slider-rule\"></div>"+"<div class=\"slider-rulelabel\"></div>"+"<div style=\"clear:both\"></div>"+"<input type=\"hidden\" class=\"slider-value\">"+"</div>").insertAfter(_2);
-var _4=$(_2).hide().attr("name");
+var t=$(_2);
+t.addClass("slider-f").hide();
+var _4=t.attr("name");
 if(_4){
 _3.find("input.slider-value").attr("name",_4);
-$(_2).removeAttr("name").attr("sliderName",_4);
+t.removeAttr("name").attr("sliderName",_4);
 }
 return _3;
 };
@@ -219,6 +221,7 @@ _3b.min=parseFloat(_3b.min);
 _3b.max=parseFloat(_3b.max);
 _3b.value=parseFloat(_3b.value);
 _3b.step=parseFloat(_3b.step);
+_3b.originalValue=_3b.value;
 _16(this);
 _c(this);
 _5(this);
@@ -241,6 +244,16 @@ return jq.slider("options").value;
 return jq.each(function(){
 _22(this,_3d);
 });
+},clear:function(jq){
+return jq.each(function(){
+var _3e=$(this).slider("options");
+_22(this,_3e.min);
+});
+},reset:function(jq){
+return jq.each(function(){
+var _3f=$(this).slider("options");
+_22(this,_3f.originalValue);
+});
 },enable:function(jq){
 return jq.each(function(){
 $.data(this,"slider").options.disabled=false;
@@ -252,16 +265,16 @@ $.data(this,"slider").options.disabled=true;
 _16(this);
 });
 }};
-$.fn.slider.parseOptions=function(_3e){
-var t=$(_3e);
-return $.extend({},$.parser.parseOptions(_3e,["width","height","mode",{reversed:"boolean",showTip:"boolean",min:"number",max:"number",step:"number"}]),{value:(t.val()||undefined),disabled:(t.attr("disabled")?true:undefined),rule:(t.attr("rule")?eval(t.attr("rule")):undefined)});
+$.fn.slider.parseOptions=function(_40){
+var t=$(_40);
+return $.extend({},$.parser.parseOptions(_40,["width","height","mode",{reversed:"boolean",showTip:"boolean",min:"number",max:"number",step:"number"}]),{value:(t.val()||undefined),disabled:(t.attr("disabled")?true:undefined),rule:(t.attr("rule")?eval(t.attr("rule")):undefined)});
 };
-$.fn.slider.defaults={width:"auto",height:"auto",mode:"h",reversed:false,showTip:false,disabled:false,value:0,min:0,max:100,step:1,rule:[],tipFormatter:function(_3f){
-return _3f;
-},onChange:function(_40,_41){
-},onSlideStart:function(_42){
-},onSlideEnd:function(_43){
-},onComplete:function(_44){
+$.fn.slider.defaults={width:"auto",height:"auto",mode:"h",reversed:false,showTip:false,disabled:false,value:0,min:0,max:100,step:1,rule:[],tipFormatter:function(_41){
+return _41;
+},onChange:function(_42,_43){
+},onSlideStart:function(_44){
+},onSlideEnd:function(_45){
+},onComplete:function(_46){
 }};
 })(jQuery);
 

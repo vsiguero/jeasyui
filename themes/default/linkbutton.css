@@ -9,7 +9,6 @@ a.l-btn {
   outline: none;
 }
 a.l-btn-plain {
-  padding-right: 5px;
   border: 0;
   padding: 1px 6px 1px 1px;
 }
@@ -22,16 +21,18 @@ a.l-btn-disabled {
 a.l-btn span.l-btn-left {
   display: inline-block;
   background-position: 0 -48px;
-  padding: 4px 0px 4px 18px;
-  line-height: 16px;
-  height: 16px;
+  padding: 0 0 0 18px;
+  line-height: 24px;
+  height: 24px;
 }
 a.l-btn-plain span.l-btn-left {
   padding-left: 5px;
 }
 a.l-btn span span.l-btn-text {
+  position: relative;
   display: inline-block;
-  vertical-align: baseline;
+  vertical-align: top;
+  top: 4px;
   width: auto;
   height: 16px;
   line-height: 16px;

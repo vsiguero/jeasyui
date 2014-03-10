@@ -1,5 +1,5 @@
 ﻿/**
- * jQuery EasyUI 1.3.4
+ * jQuery EasyUI 1.3.5
  * 
  * Copyright (c) 2009-2013 www.jeasyui.com. All rights reserved.
  *
@@ -16,6 +16,9 @@ $(_2).addClass("validatebox-text");
 function _3(_4){
 var _5=$.data(_4,"validatebox");
 _5.validating=false;
+if(_5.timer){
+clearTimeout(_5.timer);
+}
 $(_4).tooltip("destroy");
 $(_4).unbind();
 $(_4).remove();
@@ -110,6 +113,8 @@ return false;
 }
 return true;
 };
+box.removeClass("validatebox-invalid");
+_a(_15);
 if(_17.novalidate||box.is(":disabled")){
 return true;
 }
@@ -136,8 +141,6 @@ return false;
 }
 }
 }
-box.removeClass("validatebox-invalid");
-_a(_15);
 return true;
 };
 function _20(_21,_22){

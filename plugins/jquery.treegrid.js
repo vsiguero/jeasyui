@@ -1,5 +1,5 @@
 ﻿/**
- * jQuery EasyUI 1.3.4
+ * jQuery EasyUI 1.3.5
  * 
  * Copyright (c) 2009-2013 www.jeasyui.com. All rights reserved.
  *
@@ -1058,7 +1058,7 @@ if(type=="highlight"){
 return (_106==1?dc.body1:dc.body2).find("tr.datagrid-row-over");
 }else{
 if(type=="checked"){
-return (_106==1?dc.body1:dc.body2).find("tr.datagrid-row:has(div.datagrid-cell-check input:checked)");
+return (_106==1?dc.body1:dc.body2).find("tr.datagrid-row-checked");
 }else{
 if(type=="last"){
 return (_106==1?dc.body1:dc.body2).find("tr:last[node-id]");

@@ -1,5 +1,5 @@
 ﻿/**
- * jQuery EasyUI 1.3.4
+ * jQuery EasyUI 1.3.5
  * 
  * Copyright (c) 2009-2013 www.jeasyui.com. All rights reserved.
  *
@@ -187,7 +187,7 @@ var _34=$.fn.combogrid.methods[_32];
 if(_34){
 return _34(this,_33);
 }else{
-return $.fn.combo.methods[_32](this,_33);
+return this.combo(_32,_33);
 }
 }
 _32=_32||{};
@@ -233,13 +233,17 @@ $.fn.combogrid.parseOptions=function(_3a){
 var t=$(_3a);
 return $.extend({},$.fn.combo.parseOptions(_3a),$.fn.datagrid.parseOptions(_3a),$.parser.parseOptions(_3a,["idField","textField","mode"]));
 };
-$.fn.combogrid.defaults=$.extend({},$.fn.combo.defaults,$.fn.datagrid.defaults,{loadMsg:null,idField:null,textField:null,mode:"local",keyHandler:{up:function(){
+$.fn.combogrid.defaults=$.extend({},$.fn.combo.defaults,$.fn.datagrid.defaults,{loadMsg:null,idField:null,textField:null,mode:"local",keyHandler:{up:function(e){
 nav(this,"prev");
-},down:function(){
+e.preventDefault();
+},down:function(e){
 nav(this,"next");
-},enter:function(){
+e.preventDefault();
+},left:function(e){
+},right:function(e){
+},enter:function(e){
 _2c(this);
-},query:function(q){
+},query:function(q,e){
 _26(this,q);
 }},filter:function(q,row){
 var _3b=$(this).combogrid("options");

@@ -24,10 +24,12 @@
 				'<div style="clear:both"></div>' +
 				'<input type="hidden" class="slider-value">' +
 				'</div>').insertAfter(target);
-		var name = $(target).hide().attr('name');
+		var t = $(target);
+		t.addClass('slider-f').hide();
+		var name = t.attr('name');
 		if (name){
 			slider.find('input.slider-value').attr('name', name);
-			$(target).removeAttr('name').attr('sliderName', name);
+			t.removeAttr('name').attr('sliderName', name);
 		}
 		return slider;
 	}
@@ -277,6 +279,7 @@
 			opts.max = parseFloat(opts.max);
 			opts.value = parseFloat(opts.value);
 			opts.step = parseFloat(opts.step);
+			opts.originalValue = opts.value;
 			
 			buildSlider(this);
 			showRule(this);
@@ -305,6 +308,18 @@
 		setValue: function(jq, value){
 			return jq.each(function(){
 				setValue(this, value);
+			});
+		},
+		clear: function(jq){
+			return jq.each(function(){
+				var opts = $(this).slider('options');
+				setValue(this, opts.min);
+			});
+		},
+		reset: function(jq){
+			return jq.each(function(){
+				var opts = $(this).slider('options');
+				setValue(this, opts.originalValue);
 			});
 		},
 		enable: function(jq){

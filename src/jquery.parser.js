@@ -102,6 +102,7 @@
 	};
 	$(function(){
 		var d = $('<div style="position:absolute;top:-1000px;width:100px;height:100px;padding:5px"></div>').appendTo('body');
+		d.width(100);
 		$._boxModel = parseInt(d.width()) == 100;
 		d.remove();
 		

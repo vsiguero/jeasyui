@@ -1,5 +1,5 @@
 ﻿/**
- * jQuery EasyUI 1.3.4
+ * jQuery EasyUI 1.3.5
  * 
  * Copyright (c) 2009-2013 www.jeasyui.com. All rights reserved.
  *
@@ -79,6 +79,7 @@ return _8;
 }};
 $(function(){
 var d=$("<div style=\"position:absolute;top:-1000px;width:100px;height:100px;padding:5px\"></div>").appendTo("body");
+d.width(100);
 $._boxModel=parseInt(d.width())==100;
 d.remove();
 if(!window.easyloader&&$.parser.auto){

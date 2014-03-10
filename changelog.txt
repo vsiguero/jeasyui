@@ -1,3 +1,27 @@
+Version 1.3.5
+-------------
+* Bug
+ * searchbox: The 'searcher' function can not offer 'name' parameter value correctly. fixed.
+ * combo: The 'isValid' method can not return boolean value. fixed.
+ * combo: Clicking combo will trigger the 'onHidePanel' event of other combo components that have hidden drop-down panels. fixed.
+ * combogrid: Some methods can not inherit from combo. fixed.
+* Improvement
+ * datagrid: Improve performance on checking rows.
+ * menu: Allows to append a menu separator.
+ * menu: Add 'hideOnUnhover' property to indicate if the menu should be hidden when mouse exits it.
+ * slider: Add 'clear' and 'reset' methods.
+ * tabs: Add 'unselect' method that will trigger 'onUnselect' event.
+ * tabs: Add 'selected' property to specify what tab panel will be opened.
+ * tabs: The 'collapsible' property of tab panel is supported to determine if the tab panel can be collapsed.
+ * tabs: Add 'showHeader' property, 'showHeader' and 'hideHeader' methods.
+ * combobox: The 'disabled' property can be used to disable some items.
+ * tree: Improve loading performance.
+ * pagination: The 'layout' property can be used to customize the pagination layout.
+ * accordion: Add 'unselect' method that will trigger 'onUnselect' event.
+ * accordion: Add 'selected' and 'multiple' properties.
+ * accordion: Add 'getSelections' method.
+ * datebox: Add 'sharedCalendar' property that allows multiple datebox components share one calendar component.
+
 Version 1.3.4
 -------------
 * Bug

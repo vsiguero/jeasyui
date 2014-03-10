@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>Hover Tabs - jQuery EasyUI Demo</title>
+	<title>Tabs with DropDown - jQuery EasyUI Demo</title>
 	<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
 	<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
 	<link rel="stylesheet" type="text/css" href="../demo.css">
@@ -10,13 +10,13 @@
 	<script type="text/javascript" src="../../jquery.easyui.min.js"></script>
 </head>
 <body>
-	<h2>Hover Tabs</h2>
+	<h2>Tabs with DropDown</h2>
 	<div class="demo-info">
 		<div class="demo-tip icon-tip"></div>
-		<div>Move mouse over the tab strip to open the tab panel.</div>
+		<div>This sample shows how to add a dropdown menu over a tab strip.</div>
 	</div>
 	<div style="margin:10px 0;"></div>
-	<div id="tt" class="easyui-tabs" style="width:700px;height:250px">
+	<div id="tt" style="width:700px;height:250px">
 		<div title="About" style="padding:10px">
 			<p style="font-size:14px">jQuery EasyUI framework helps you build your web pages easily.</p>
 			<ul>
@@ -31,18 +31,27 @@
 		<div title="My Documents" style="padding:10px">
 			<ul class="easyui-tree" data-options="url:'tree_data1.json',method:'get',animate:true"></ul>
 		</div>
-		<div title="Help" data-options="iconCls:'icon-help',closable:true" style="padding:10px">
+		<div title="Help" style="padding:10px">
 			This is the help content.
 		</div>
 	</div>
-	<script type="text/javascript">
+	<div id="mm" style="width:120px">
+		<div>Welcome</div>
+		<div>Help Contents</div>
+		<div data-options="iconCls:'icon-search'">Search</div>
+		<div>Dynamic Help</div>
+	</div>
+	
+	<script>
 		$(function(){
-			var tabs = $('#tt').tabs().tabs('tabs');
-			for(var i=0; i<tabs.length; i++){
-				tabs[i].panel('options').tab.unbind().bind('mouseenter',{index:i},function(e){
-					$('#tt').tabs('select', e.data.index);
-				});
-			}
+			var p = $('#tt').tabs().tabs('tabs')[2];
+			var mb = p.panel('options').tab.find('a.tabs-inner');
+			mb.menubutton({
+				menu:'#mm',
+				iconCls:'icon-help'
+			}).click(function(){
+				$('#tt').tabs('select',2);
+			});
 		});
 	</script>
 </body>

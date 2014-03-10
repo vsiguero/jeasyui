@@ -1,5 +1,5 @@
 ﻿/**
- * jQuery EasyUI 1.3.4
+ * jQuery EasyUI 1.3.5
  * 
  * Copyright (c) 2009-2013 www.jeasyui.com. All rights reserved.
  *
@@ -13,18 +13,7 @@
 function _1(_2,_3){
 var _4=$.data(_2,"window").options;
 if(_3){
-if(_3.width){
-_4.width=_3.width;
-}
-if(_3.height){
-_4.height=_3.height;
-}
-if(_3.left!=null){
-_4.left=_3.left;
-}
-if(_3.top!=null){
-_4.top=_3.top;
-}
+$.extend(_4,_3);
 }
 $(_2).panel("resize",_4);
 };

@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>Custom Pagination Buttons - jQuery EasyUI Demo</title>
+	<title>DateBox Buttons - jQuery EasyUI Demo</title>
 	<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
 	<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
 	<link rel="stylesheet" type="text/css" href="../demo.css">
@@ -10,30 +10,22 @@
 	<script type="text/javascript" src="../../jquery.easyui.min.js"></script>
 </head>
 <body>
-	<h2>Custom Pagination Buttons</h2>
+	<h2>DateBox Buttons</h2>
 	<div class="demo-info">
 		<div class="demo-tip icon-tip"></div>
-		<div>The customized buttons can be appended to page bar.</div>
+		<div>This example shows how to customize the datebox buttons underneath the calendar.</div>
 	</div>
 	<div style="margin:10px 0;"></div>
-	<div class="easyui-pagination" data-options="total:114,buttons:buttons" style="border:1px solid #ddd;"></div>
+	<input class="easyui-datebox"></input>
+	<input class="easyui-datebox" data-options="buttons:buttons"></input>
 	<script>
-		var buttons = [{
-			iconCls:'icon-add',
-			handler:function(){
-				alert('add');
+		var buttons = $.extend([], $.fn.datebox.defaults.buttons);
+		buttons.splice(1, 0, {
+			text: 'MyBtn',
+			handler: function(target){
+				alert('click MyBtn');
 			}
-		},{
-			iconCls:'icon-cut',
-			handler:function(){
-				alert('cut');
-			}
-		},{
-			iconCls:'icon-save',
-			handler:function(){
-				alert('save');
-			}
-		}];
+		});
 	</script>
 </body>
 </html>

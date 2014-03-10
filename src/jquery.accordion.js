@@ -22,79 +22,99 @@
 		var cc = $(container);
 		opts.fit ? $.extend(opts, cc._fit()) : cc._fit(false);
 		
-		if (opts.width > 0){
+		if (!isNaN(opts.width)){
 			cc._outerWidth(opts.width);
+		} else {
+			cc.css('width', '');
 		}
-		var panelHeight = 'auto';
-		if (opts.height > 0){
+		
+		var headerHeight = 0;
+		var bodyHeight = 'auto';
+		var headers = cc.find('>div.panel>div.accordion-header');
+		if (headers.length){
+			headerHeight = $(headers[0]).css('height', '')._outerHeight();
+		}
+		if (!isNaN(opts.height)){
 			cc._outerHeight(opts.height);
-			// get the first panel's header height as all the header height
-			var headerHeight = panels.length ? panels[0].panel('header').css('height', '')._outerHeight() : 'auto';
-			var panelHeight = cc.height() - (panels.length-1)*headerHeight;
+			bodyHeight = cc.height() - headerHeight*headers.length;
+		} else {
+			cc.css('height', '');
 		}
-		for(var i=0; i<panels.length; i++){
-			var panel = panels[i];
-			panel.panel('header')._outerHeight(headerHeight);
-			panel.panel('resize', {
-				width: cc.width(),
-				height: panelHeight
-			});
+		
+		_resize(true, bodyHeight - _resize(false) + 1);
+		
+		function _resize(collapsible, height){
+			var totalHeight = 0;
+			for(var i=0; i<panels.length; i++){
+				var p = panels[i];
+				var h = p.panel('header')._outerHeight(headerHeight);
+				if (p.panel('options').collapsible == collapsible){
+					var pheight = isNaN(height) ? undefined : (height+headerHeight*h.length);
+					p.panel('resize', {
+						width: cc.width(),
+						height: (collapsible ? pheight : undefined)
+					});
+					totalHeight += p.panel('panel').outerHeight()-headerHeight;
+				}
+			}
+			return totalHeight;
 		}
 	}
 	
 	/**
-	 * get the current panel
+	 * find a panel by specified property, return the panel object or panel index.
 	 */
-	function getCurrent(container){
+	function findBy(container, property, value, all){
 		var panels = $.data(container, 'accordion').panels;
+		var pp = [];
 		for(var i=0; i<panels.length; i++){
-			var panel = panels[i];
-			if (panel.panel('options').collapsed == false){
-				return panel;
+			var p = panels[i];
+			if (property){
+				if (p.panel('options')[property] == value){
+					pp.push(p);
+				}
+			} else {
+				if (p[0] == $(value)[0]){
+					return i;
+				}
 			}
 		}
-		return null;
+		if (property){
+			return all ? pp : (pp.length ? pp[0] : null);
+		} else {
+			return -1;
+		}
+	}
+	
+	function getSelections(container){
+		return findBy(container, 'collapsed', false, true);
+	}
+	
+	function getSelected(container){
+		var pp = getSelections(container);
+		return pp.length ? pp[0] : null;
 	}
 	
 	/**
 	 * get panel index, start with 0
 	 */
 	function getPanelIndex(container, panel){
-		var panels = $.data(container, 'accordion').panels;
-		for(var i=0; i<panels.length; i++){
-			if (panels[i][0] == $(panel)[0]){
-				return i;
-			}
-		}
-		return -1;
+		return findBy(container, null, panel);
 	}
 	
 	/**
-	 * get the specified panel, remove it from panel array if removeit setted to true.
+	 * get the specified panel.
 	 */
-	function getPanel(container, which, removeit){
+	function getPanel(container, which){
 		var panels = $.data(container, 'accordion').panels;
 		if (typeof which == 'number'){
 			if (which < 0 || which >= panels.length){
 				return null;
 			} else {
-				var panel = panels[which];
-				if (removeit){
-					panels.splice(which,1);
-				}
-				return panel;
+				return panels[which];
 			}
 		}
-		for(var i=0; i<panels.length; i++){
-			var panel = panels[i];
-			if (panel.panel('options').title == which){
-				if (removeit){
-					panels.splice(i, 1);
-				}
-				return panel;
-			}
-		}
-		return null;
+		return findBy(container, 'title', which);
 	}
 	
 	function setProperties(container){
@@ -107,17 +127,18 @@
 		}
 	}
 	
-	function wrapAccordion(container){
+	function init(container){
+		var state = $.data(container, 'accordion');
 		var cc = $(container);
 		cc.addClass('accordion');
 		
-		var panels = [];
+		state.panels = [];
 		cc.children('div').each(function(){
 			var opts = $.extend({}, $.parser.parseOptions(this), {
 				selected: ($(this).attr('selected') ? true : undefined)
 			});
 			var pp = $(this);
-			panels.push(pp);
+			state.panels.push(pp);
 			createPanel(container, pp, opts);
 		});
 		
@@ -128,67 +149,72 @@
 			}
 			return false;
 		});
-		
-		return {
-			accordion: cc,
-			panels: panels
-		}
 	}
 	
 	function createPanel(container, pp, options){
-		pp.panel($.extend({}, options, {
-			collapsible: false,
+		var opts = $.data(container, 'accordion').options;
+		pp.panel($.extend({}, {
+			collapsible: true,
 			minimizable: false,
 			maximizable: false,
 			closable: false,
 			doSize: false,
 			collapsed: true,
 			headerCls: 'accordion-header',
-			bodyCls: 'accordion-body',
+			bodyCls: 'accordion-body'
+		}, options, {
 			onBeforeExpand: function(){
 				if (options.onBeforeExpand){
 					if (options.onBeforeExpand.call(this) == false){return false}
 				}
-				var curr = getCurrent(container);
-				if (curr){
-					var header = $(curr).panel('header');
-					header.removeClass('accordion-header-selected');
-					header.find('.accordion-collapse').triggerHandler('click');
+				if (!opts.multiple){
+					// get all selected panel
+					var all = $.grep(getSelections(container), function(p){
+						return p.panel('options').collapsible;
+					});
+					for(var i=0; i<all.length; i++){
+						unselect(container, getPanelIndex(container, all[i]));
+					}
 				}
-				var header = pp.panel('header');
+				var header = $(this).panel('header');
 				header.addClass('accordion-header-selected');
 				header.find('.accordion-collapse').removeClass('accordion-expand');
 			},
 			onExpand: function(){
 				if (options.onExpand){options.onExpand.call(this)}
-				var opts = $.data(container, 'accordion').options;
-				opts.onSelect.call(container, pp.panel('options').title, getPanelIndex(container, this));
+				opts.onSelect.call(container, $(this).panel('options').title, getPanelIndex(container, this));
 			},
 			onBeforeCollapse: function(){
 				if (options.onBeforeCollapse){
 					if (options.onBeforeCollapse.call(this) == false){return false}
 				}
-				var header = pp.panel('header');
+				var header = $(this).panel('header');
 				header.removeClass('accordion-header-selected');
 				header.find('.accordion-collapse').addClass('accordion-expand');
+			},
+			onCollapse: function(){
+				if (options.onCollapse){options.onCollapse.call(this)}
+				opts.onUnselect.call(container, $(this).panel('options').title, getPanelIndex(container, this));
 			}
 		}));
 		
 		var header = pp.panel('header');
-		var t = $('<a class="accordion-collapse accordion-expand" href="javascript:void(0)"></a>').appendTo(header.children('div.panel-tool'));
-		t.bind('click', function(e){
-			var animate = $.data(container, 'accordion').options.animate;
-			stopAnimate(container);
+		var tool = header.children('div.panel-tool');
+		tool.children('a.panel-tool-collapse').hide();	// hide the old collapse button
+		var t = $('<a href="javascript:void(0)"></a>').addClass('accordion-collapse accordion-expand').appendTo(tool);
+		t.bind('click', function(){
+			var index = getPanelIndex(container, pp);
 			if (pp.panel('options').collapsed){
-				pp.panel('expand', animate);
+				select(container, index);
 			} else {
-				pp.panel('collapse', animate);
+				unselect(container, index);
 			}
 			return false;
 		});
+		pp.panel('options').collapsible ? t.show() : t.hide();
 		
 		header.click(function(){
-			$(this).find('.accordion-collapse').triggerHandler('click');
+			$(this).find('a.accordion-collapse:visible').triggerHandler('click');
 			return false;
 		});
 	}
@@ -197,31 +223,31 @@
 	 * select and set the specified panel active
 	 */
 	function select(container, which){
-		var panel = getPanel(container, which);
-		if (!panel) return;
-		
-		var curr = getCurrent(container);
-		if (curr && curr[0] == panel[0]){
-			return;
-		}
-		
-		panel.panel('header').triggerHandler('click');
+		var p = getPanel(container, which);
+		if (!p){return}
+		stopAnimate(container);
+		var opts = $.data(container, 'accordion').options;
+		p.panel('expand', opts.animate);
+	}
+	
+	function unselect(container, which){
+		var p = getPanel(container, which);
+		if (!p){return}
+		stopAnimate(container);
+		var opts = $.data(container, 'accordion').options;
+		p.panel('collapse', opts.animate);
 	}
 	
 	function doFirstSelect(container){
-		var panels = $.data(container, 'accordion').panels;
-		for(var i=0; i<panels.length; i++){
-			if (panels[i].panel('options').selected){
-				_select(i);
-				return;
-			}
-		}
-		if (panels.length){
-			_select(0);
+		var opts = $.data(container, 'accordion').options;
+		var p = findBy(container, 'selected', true);
+		if (p){
+			_select(getPanelIndex(container, p));
+		} else {
+			_select(opts.selected);
 		}
 		
 		function _select(index){
-			var opts = $.data(container, 'accordion').options;
 			var animate = opts.animate;
 			opts.animate = false;
 			select(container, index);
@@ -270,17 +296,16 @@
 		var title = panel.panel('options').title;
 		var index = getPanelIndex(container, panel);
 		
-		if (opts.onBeforeRemove.call(container, title, index) == false) return;
+		if (!panel){return}
+		if (opts.onBeforeRemove.call(container, title, index) == false){return}
 		
-		var panel = getPanel(container, which, true);
-		if (panel){
-			panel.panel('destroy');
-			if (panels.length){
-				setSize(container);
-				var curr = getCurrent(container);
-				if (!curr){
-					select(container, 0);
-				}
+		panels.splice(index, 1);
+		panel.panel('destroy');
+		if (panels.length){
+			setSize(container);
+			var curr = getSelected(container);
+			if (!curr){
+				select(container, 0);
 			}
 		}
 		
@@ -296,18 +321,15 @@
 		
 		return this.each(function(){
 			var state = $.data(this, 'accordion');
-			var opts;
 			if (state){
-				opts = $.extend(state.options, options);
-				state.opts = opts;
+				$.extend(state.options, options);
 			} else {
-				opts = $.extend({}, $.fn.accordion.defaults, $.fn.accordion.parseOptions(this), options);
-				var r = wrapAccordion(this);
 				$.data(this, 'accordion', {
-					options: opts,
-					accordion: r.accordion,
-					panels: r.panels
+					options: $.extend({}, $.fn.accordion.defaults, $.fn.accordion.parseOptions(this), options),
+					accordion: $(this).addClass('accordion'),
+					panels: []
 				});
+				init(this);
 			}
 			
 			setProperties(this);
@@ -328,8 +350,11 @@
 				setSize(this);
 			});
 		},
+		getSelections: function(jq){
+			return getSelections(jq[0]);
+		},
 		getSelected: function(jq){
-			return getCurrent(jq[0]);
+			return getSelected(jq[0]);
 		},
 		getPanel: function(jq, which){
 			return getPanel(jq[0], which);
@@ -340,6 +365,11 @@
 		select: function(jq, which){
 			return jq.each(function(){
 				select(this, which);
+			});
+		},
+		unselect: function(jq, which){
+			return jq.each(function(){
+				unselect(this, which);
 			});
 		},
 		add: function(jq, options){
@@ -357,7 +387,8 @@
 	$.fn.accordion.parseOptions = function(target){
 		var t = $(target);
 		return $.extend({}, $.parser.parseOptions(target, [
-			'width','height',{fit:'boolean',border:'boolean',animate:'boolean'}
+			'width','height',
+			{fit:'boolean',border:'boolean',animate:'boolean',multiple:'boolean',selected:'number'}
 		]));
 	};
 	
@@ -367,8 +398,11 @@
 		fit: false,
 		border: true,
 		animate: true,
+		multiple: false,
+		selected: 0,
 		
 		onSelect: function(title, index){},
+		onUnselect: function(title, index){},
 		onAdd: function(title, index){},
 		onBeforeRemove: function(title, index){},
 		onRemove: function(title, index){}

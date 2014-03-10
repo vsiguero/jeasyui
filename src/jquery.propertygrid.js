@@ -20,7 +20,7 @@
 		var opts = $.data(target, 'propertygrid').options;
 		$(target).datagrid($.extend({}, opts, {
 			cls:'propertygrid',
-			view:(opts.showGroup ? groupview : undefined),
+			view:(opts.showGroup ? opts.groupView : opts.view),
 			onClickRow:function(index, row){
 				if (currTarget != this){
 //					leaveCurrRow();
@@ -41,11 +41,6 @@
 			loadFilter:function(data){
 				stopEditing(this);
 				return opts.loadFilter.call(this, data);
-			},
-			onLoadSuccess:function(data){
-//				$(target).datagrid('getPanel').find('div.datagrid-group').css('border','');
-				$(target).datagrid('getPanel').find('div.datagrid-group').attr('style','');
-				opts.onLoadSuccess.call(target,data);
 			}
 		}));
 		$(document).unbind('.propertygrid').bind('mousedown.propertygrid', function(e){
@@ -127,95 +122,105 @@
 	};
 	
 	$.fn.propertygrid.parseOptions = function(target){
-		var t = $(target);
 		return $.extend({}, $.fn.datagrid.parseOptions(target), $.parser.parseOptions(target,[{showGroup:'boolean'}]));
 	};
 	
 	// the group view definition
 	var groupview = $.extend({}, $.fn.datagrid.defaults.view, {
 		render: function(target, container, frozen){
-			var state = $.data(target, 'datagrid');
-			var opts = state.options;
-			var rows = state.data.rows;
-			var fields = $(target).datagrid('getColumnFields', frozen);
-			
 			var table = [];
-			var index = 0;
 			var groups = this.groups;
 			for(var i=0; i<groups.length; i++){
-				var group = groups[i];
-				
-				table.push('<div class="datagrid-group" group-index=' + i + ' style="height:25px;overflow:hidden;border-bottom:1px solid #ccc;">');
-				table.push('<table cellspacing="0" cellpadding="0" border="0" style="height:100%"><tbody>');
-				table.push('<tr>');
-				table.push('<td style="border:0;">');
-				if (!frozen){
-					table.push('<span style="color:#666;font-weight:bold;">');
-					table.push(opts.groupFormatter.call(target, group.fvalue, group.rows));
-					table.push('</span>');
-				}
-				table.push('</td>');
-				table.push('</tr>');
-				table.push('</tbody></table>');
-				table.push('</div>');
-				
-				table.push('<table class="datagrid-btable" cellspacing="0" cellpadding="0" border="0"><tbody>');
-				for(var j=0; j<group.rows.length; j++) {
-					// get the class and style attributes for this row
-					var cls = (index % 2 && opts.striped) ? 'class="datagrid-row datagrid-row-alt"' : 'class="datagrid-row"';
-					var styleValue = opts.rowStyler ? opts.rowStyler.call(target, index, group.rows[j]) : '';
-					var style = styleValue ? 'style="' + styleValue + '"' : '';
-					var rowId = state.rowIdPrefix + '-' + (frozen?1:2) + '-' + index;
-					table.push('<tr id="' + rowId + '" datagrid-row-index="' + index + '" ' + cls + ' ' + style + '>');
-					table.push(this.renderRow.call(this, target, fields, frozen, index, group.rows[j]));
-					table.push('</tr>');
-					index++;
-				}
-				table.push('</tbody></table>');
+				table.push(this.renderGroup.call(this, target, i, groups[i], frozen));
 			}
-			
 			$(container).html(table.join(''));
 		},
 		
-		onAfterRender: function(target){
-			var opts = $.data(target, 'datagrid').options;
-			var dc = $.data(target, 'datagrid').dc;
-			var view = dc.view;
-			var view1 = dc.view1;
-			var view2 = dc.view2;
+		renderGroup: function(target, groupIndex, group, frozen){
+			var state = $.data(target, 'datagrid');
+			var opts = state.options;
+			var fields = $(target).datagrid('getColumnFields', frozen);
 			
-			$.fn.datagrid.defaults.view.onAfterRender.call(this, target);
-			
-			if (opts.rownumbers || opts.frozenColumns.length){
-				var group = view1.find('div.datagrid-group');
-			} else {
-				var group = view2.find('div.datagrid-group');
+			var table = [];
+			table.push('<div class="datagrid-group" group-index=' + groupIndex + '>');
+			table.push('<table cellspacing="0" cellpadding="0" border="0" style="height:100%"><tbody>');
+			table.push('<tr>');
+			if ((frozen && (opts.rownumbers || opts.frozenColumns.length)) ||
+					(!frozen && !(opts.rownumbers || opts.frozenColumns.length))){
+				table.push('<td style="border:0;text-align:center;width:25px"><span class="datagrid-row-expander datagrid-row-collapse" style="display:inline-block;width:16px;height:16px;cursor:pointer">&nbsp;</span></td>');
 			}
-			$('<td style="border:0;text-align:center;width:25px"><span class="datagrid-row-expander datagrid-row-collapse" style="display:inline-block;width:16px;height:16px;cursor:pointer">&nbsp;</span></td>').insertBefore(group.find('td'));
+			table.push('<td style="border:0;">');
+			if (!frozen){
+				table.push('<span class="datagrid-group-title">');
+				table.push(opts.groupFormatter.call(target, group.value, group.rows));
+				table.push('</span>');
+			}
+			table.push('</td>');
+			table.push('</tr>');
+			table.push('</tbody></table>');
+			table.push('</div>');
 			
-			view.find('div.datagrid-group').each(function(){
-				var groupIndex = $(this).attr('group-index');
-				$(this).find('span.datagrid-row-expander').bind('click', {groupIndex:groupIndex}, function(e){
-					if ($(this).hasClass('datagrid-row-collapse')){
-						$(target).datagrid('collapseGroup', e.data.groupIndex);
+			table.push('<table class="datagrid-btable" cellspacing="0" cellpadding="0" border="0"><tbody>');
+			var index = group.startIndex;
+			for(var j=0; j<group.rows.length; j++) {
+				var css = opts.rowStyler ? opts.rowStyler.call(target, index, group.rows[j]) : '';
+				var classValue = '';
+				var styleValue = '';
+				if (typeof css == 'string'){
+					styleValue = css;
+				} else if (css){
+					classValue = css['class'] || '';
+					styleValue = css['style'] || '';
+				}
+				
+				var cls = 'class="datagrid-row ' + (index % 2 && opts.striped ? 'datagrid-row-alt ' : ' ') + classValue + '"';
+				var style = styleValue ? 'style="' + styleValue + '"' : '';
+				var rowId = state.rowIdPrefix + '-' + (frozen?1:2) + '-' + index;
+				table.push('<tr id="' + rowId + '" datagrid-row-index="' + index + '" ' + cls + ' ' + style + '>');
+				table.push(this.renderRow.call(this, target, fields, frozen, index, group.rows[j]));
+				table.push('</tr>');
+				index++;
+			}
+			table.push('</tbody></table>');
+			return table.join('');
+		},
+		
+		bindEvents: function(target){
+			var state = $.data(target, 'datagrid');
+			var dc = state.dc;
+			var body = dc.body1.add(dc.body2);
+			var clickHandler = ($.data(body[0],'events')||$._data(body[0],'events')).click[0].handler;
+			body.unbind('click').bind('click', function(e){
+				var tt = $(e.target);
+				var expander = tt.closest('span.datagrid-row-expander');
+				if (expander.length){
+					var gindex = expander.closest('div.datagrid-group').attr('group-index');
+					if (expander.hasClass('datagrid-row-collapse')){
+						$(target).datagrid('collapseGroup', gindex);
 					} else {
-						$(target).datagrid('expandGroup', e.data.groupIndex);
+						$(target).datagrid('expandGroup', gindex);
 					}
-				});
+				} else {
+					clickHandler(e);
+				}
+				e.stopPropagation();
 			});
 		},
 		
 		onBeforeRender: function(target, rows){
-			var opts = $.data(target, 'datagrid').options;
+			var state = $.data(target, 'datagrid');
+			var opts = state.options;
+			
+			initCss();
+			
 			var groups = [];
 			for(var i=0; i<rows.length; i++){
 				var row = rows[i];
 				var group = getGroup(row[opts.groupField]);
 				if (!group){
 					group = {
-						fvalue: row[opts.groupField],
-						rows: [row],
-						startRow: i
+						value: row[opts.groupField],
+						rows: [row]
 					};
 					groups.push(group);
 				} else {
@@ -223,26 +228,41 @@
 				}
 			}
 			
-			function getGroup(fvalue){
+			var index = 0;
+			var newRows = [];
+			for(var i=0; i<groups.length; i++){
+				var group = groups[i];
+				group.startIndex = index;
+				index += group.rows.length;
+				newRows = newRows.concat(group.rows);
+			}
+			
+			state.data.rows = newRows;
+			this.groups = groups;
+			
+			var that = this;
+			setTimeout(function(){
+				that.bindEvents(target);
+			},0);
+			
+			function getGroup(value){
 				for(var i=0; i<groups.length; i++){
 					var group = groups[i];
-					if (group.fvalue == fvalue){
+					if (group.value == value){
 						return group;
 					}
 				}
 				return null;
 			}
-			
-			this.groups = groups;
-			
-			var newRows = [];
-			for(var i=0; i<groups.length; i++){
-				var group = groups[i];
-				for(var j=0; j<group.rows.length; j++){
-					newRows.push(group.rows[j]);
+			function initCss(){
+				if (!$('#datagrid-group-style').length){
+					$('head').append(
+						'<style id="datagrid-group-style">' +
+						'.datagrid-group{height:25px;overflow:hidden;font-weight:bold;border-bottom:1px solid #ccc;}' +
+						'</style>'
+					);
 				}
 			}
-			$.data(target, 'datagrid').data.rows = newRows;
 		}
 	});
 
@@ -250,11 +270,7 @@
 	    expandGroup:function(jq, groupIndex){
 	        return jq.each(function(){
 	            var view = $.data(this, 'datagrid').dc.view;
-	            if (groupIndex!=undefined){
-	                var group = view.find('div.datagrid-group[group-index="'+groupIndex+'"]');
-	            } else {
-	                var group = view.find('div.datagrid-group');
-	            }
+	            var group = view.find(groupIndex!=undefined ? 'div.datagrid-group[group-index="'+groupIndex+'"]' : 'div.datagrid-group');
 	            var expander = group.find('span.datagrid-row-expander');
 	            if (expander.hasClass('datagrid-row-expand')){
 	                expander.removeClass('datagrid-row-expand').addClass('datagrid-row-collapse');
@@ -266,11 +282,7 @@
 	    collapseGroup:function(jq, groupIndex){
 	        return jq.each(function(){
 	            var view = $.data(this, 'datagrid').dc.view;
-	            if (groupIndex!=undefined){
-	                var group = view.find('div.datagrid-group[group-index="'+groupIndex+'"]');
-	            } else {
-	                var group = view.find('div.datagrid-group');
-	            }
+	            var group = view.find(groupIndex!=undefined ? 'div.datagrid-group[group-index="'+groupIndex+'"]' : 'div.datagrid-group');
 	            var expander = group.find('span.datagrid-row-expander');
 	            if (expander.hasClass('datagrid-row-collapse')){
 	                expander.removeClass('datagrid-row-collapse').addClass('datagrid-row-expand');
@@ -296,6 +308,7 @@
 		]],
 		
 		showGroup:false,
+		groupView:groupview,
 		groupField:'group',
 		groupFormatter:function(fvalue,rows){return fvalue}
 	});
